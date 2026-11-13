@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import com.example.library_management.data.model.Book
 import com.example.library_management.data.model.sampleBooks
 import com.example.library_management.ui.components.*
 import com.example.library_management.ui.theme.LibraryManagementTheme
+import com.example.library_management.ui.screen.SearchScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,18 +35,21 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LibraryManagementTheme {
+                // Quản lý trạng thái tab hiện tại của BottomNavigation
                 var selectedTab by remember { mutableStateOf(0) }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         Column {
-                            // Thanh ReadingBar hiển thị sách đang đọc phía trên BottomNavigation
-                            ReadingBar(
-                                bookTitle = "Clean Code",
-                                progress = "68%",
-                                onClick = { /* Xử lý tiếp tục đọc */ }
-                            )
+                            // ReadingBar chỉ hiển thị ở màn hình Trang chủ (tab 0) hoặc xuyên suốt nếu phù hợp
+                            if (selectedTab == 0) {
+                                ReadingBar(
+                                    bookTitle = "Clean Code",
+                                    progress = "68%",
+                                    onClick = { /* Xử lý tiếp tục đọc */ }
+                                )
+                            }
                             // BottomNavigation điều hướng 4 tab
                             AppBottomNavigation(
                                 selectedTab = selectedTab,
@@ -53,9 +58,13 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-                    HomeScreen(
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    // Điều hướng nội dung màn hình dựa trên tab đang chọn
+                    when (selectedTab) {
+                        0 -> HomeScreen(modifier = Modifier.padding(innerPadding))
+                        1 -> SearchScreen(modifier = Modifier.padding(innerPadding))
+                        2 -> SimplePlaceholderScreen(title = "Lịch sử đọc sách", modifier = Modifier.padding(innerPadding))
+                        3 -> SimplePlaceholderScreen(title = "Thông tin cá nhân", modifier = Modifier.padding(innerPadding))
+                    }
                 }
             }
         }
@@ -70,7 +79,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
     val categories = listOf("Tất cả", "Lập trình", "Java", "Kotlin", "Thuật toán")
 
-    // Lọc sách theo từ khóa tìm kiếm và danh mục được chọn
     val filteredBooks = sampleBooks.filter { book ->
         val matchesSearch = book.title.contains(searchText, ignoreCase = true) ||
                 book.author.contains(searchText, ignoreCase = true) ||
@@ -81,7 +89,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         matchesSearch && matchesCategory
     }
 
-    // Màn hình chính cuộn mượt mà chứa toàn bộ thành phần
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -89,25 +96,14 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(vertical = 16.dp)
     ) {
-        // 1. Header ứng dụng
-        item {
-            HomeHeader()
-        }
-
-        // 2. Thanh tìm kiếm
+        item { HomeHeader() }
         item {
             SearchBarComponent(
                 searchText = searchText,
                 onSearchTextChanged = { searchText = it }
             )
         }
-
-        // 3. Banner khuyến khích học tập
-        item {
-            HomeBanner()
-        }
-
-        // 4. Các chip danh mục lọc sách
+        item { HomeBanner() }
         item {
             CategorySection(
                 categories = categories,
@@ -115,8 +111,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 onCategorySelected = { selectedCategory = it }
             )
         }
-
-        // Tiêu đề sách nổi bật
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -137,13 +131,9 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 )
             }
         }
-
-        // 5. Lưới sách 2 cột (BookGrid)
         item {
             val chunkedBooks = filteredBooks.chunked(2)
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 chunkedBooks.forEach { rowBooks ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -157,7 +147,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 )
                             }
                         }
-                        // Cân bằng khoảng trống nếu dòng lẻ phần tử
                         if (rowBooks.size == 1) {
                             Spacer(modifier = Modifier.weight(1f))
                         }
@@ -167,8 +156,55 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    // Hiển thị Dialog chi tiết sách khi người dùng bấm vào Card
     BookDetailDialog(book = selectedBook, onDismiss = { selectedBook = null })
+}
+
+// Màn hình chờ cho tab Tìm kiếm (Sẽ được phát triển chi tiết ở bước sau)
+@Composable
+fun SearchPlaceholderScreen(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.Search,
+            contentDescription = null,
+            tint = Color(0xFF006C45),
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Màn hình Tìm kiếm đang phát triển",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1A1C19)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Vui lòng chờ triển khai ở các bước tiếp theo.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray
+        )
+    }
+}
+
+// Màn hình chờ chung cho các tab Lịch sử và Cá nhân
+@Composable
+fun SimplePlaceholderScreen(title: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.Gray
+        )
+    }
 }
 
 @Composable
@@ -213,17 +249,8 @@ fun ReadingBar(
                     )
                 }
                 Column {
-                    Text(
-                        text = "Đang đọc dở",
-                        fontSize = 10.sp,
-                        color = Color.Gray
-                    )
-                    Text(
-                        text = bookTitle,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF006C45)
-                    )
+                    Text(text = "Đang đọc dở", fontSize = 10.sp, color = Color.Gray)
+                    Text(text = bookTitle, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF006C45))
                 }
             }
 
@@ -231,12 +258,7 @@ fun ReadingBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = progress,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1C19)
-                )
+                Text(text = progress, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1C19))
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -244,12 +266,7 @@ fun ReadingBar(
                         .background(Color(0xFF006C45)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Tiếp tục đọc",
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -261,13 +278,9 @@ fun BookDetailDialog(book: Book?, onDismiss: () -> Unit) {
     if (book != null) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = {
-                Text(text = book.title)
-            },
+            title = { Text(text = book.title) },
             text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(text = "Tác giả: ${book.author}")
                     Text(text = "Thể loại: ${book.category}")
                     Text(text = "Số lượng còn: ${book.quantity}")
@@ -277,9 +290,7 @@ fun BookDetailDialog(book: Book?, onDismiss: () -> Unit) {
                 }
             },
             confirmButton = {
-                TextButton(onClick = onDismiss) {
-                    Text("Đóng")
-                }
+                TextButton(onClick = onDismiss) { Text("Đóng") }
             }
         )
     }
