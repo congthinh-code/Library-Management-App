@@ -25,8 +25,9 @@ import androidx.compose.ui.unit.sp
 import com.example.library_management.data.model.Book
 import com.example.library_management.data.model.sampleBooks
 import com.example.library_management.ui.components.*
-import com.example.library_management.ui.theme.LibraryManagementTheme
+import com.example.library_management.ui.screen.HistoryScreen
 import com.example.library_management.ui.screen.SearchScreen
+import com.example.library_management.ui.theme.LibraryManagementTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +43,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         Column {
-                            // ReadingBar chỉ hiển thị ở màn hình Trang chủ (tab 0) hoặc xuyên suốt nếu phù hợp
+                            // ReadingBar chỉ hiển thị ở màn hình Trang chủ (tab 0)
                             if (selectedTab == 0) {
                                 ReadingBar(
                                     bookTitle = "Clean Code",
@@ -62,7 +63,7 @@ class MainActivity : ComponentActivity() {
                     when (selectedTab) {
                         0 -> HomeScreen(modifier = Modifier.padding(innerPadding))
                         1 -> SearchScreen(modifier = Modifier.padding(innerPadding))
-                        2 -> SimplePlaceholderScreen(title = "Lịch sử đọc sách", modifier = Modifier.padding(innerPadding))
+                        2 -> HistoryScreen(modifier = Modifier.padding(innerPadding)) // Tích hợp HistoryScreen hoàn chỉnh
                         3 -> SimplePlaceholderScreen(title = "Thông tin cá nhân", modifier = Modifier.padding(innerPadding))
                     }
                 }
@@ -159,39 +160,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     BookDetailDialog(book = selectedBook, onDismiss = { selectedBook = null })
 }
 
-// Màn hình chờ cho tab Tìm kiếm (Sẽ được phát triển chi tiết ở bước sau)
-@Composable
-fun SearchPlaceholderScreen(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = null,
-            tint = Color(0xFF006C45),
-            modifier = Modifier.size(64.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Màn hình Tìm kiếm đang phát triển",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF1A1C19)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Vui lòng chờ triển khai ở các bước tiếp theo.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
-        )
-    }
-}
-
-// Màn hình chờ chung cho các tab Lịch sử và Cá nhân
+// Màn hình chờ chung cho các tab chưa phát triển (Cá nhân)
 @Composable
 fun SimplePlaceholderScreen(title: String, modifier: Modifier = Modifier) {
     Box(
@@ -270,28 +239,5 @@ fun ReadingBar(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun BookDetailDialog(book: Book?, onDismiss: () -> Unit) {
-    if (book != null) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(text = book.title) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(text = "Tác giả: ${book.author}")
-                    Text(text = "Thể loại: ${book.category}")
-                    Text(text = "Số lượng còn: ${book.quantity}")
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "Mô tả:", style = MaterialTheme.typography.titleSmall)
-                    Text(text = book.description)
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = onDismiss) { Text("Đóng") }
-            }
-        )
     }
 }
