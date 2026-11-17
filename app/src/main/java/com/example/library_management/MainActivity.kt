@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +25,7 @@ import com.example.library_management.data.model.Book
 import com.example.library_management.data.model.sampleBooks
 import com.example.library_management.ui.components.*
 import com.example.library_management.ui.screen.HistoryScreen
+import com.example.library_management.ui.screen.PersonalScreen
 import com.example.library_management.ui.screen.SearchScreen
 import com.example.library_management.ui.theme.LibraryManagementTheme
 
@@ -63,8 +63,11 @@ class MainActivity : ComponentActivity() {
                     when (selectedTab) {
                         0 -> HomeScreen(modifier = Modifier.padding(innerPadding))
                         1 -> SearchScreen(modifier = Modifier.padding(innerPadding))
-                        2 -> HistoryScreen(modifier = Modifier.padding(innerPadding)) // Tích hợp HistoryScreen hoàn chỉnh
-                        3 -> SimplePlaceholderScreen(title = "Thông tin cá nhân", modifier = Modifier.padding(innerPadding))
+                        2 -> HistoryScreen(modifier = Modifier.padding(innerPadding))
+                        3 -> PersonalScreen(
+                            onHistoryClick = { selectedTab = 2 }, // Kết nối điều hướng sang tab Lịch sử
+                            modifier = Modifier.padding(innerPadding)
+                        )
                     }
                 }
             }
@@ -160,22 +163,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     BookDetailDialog(book = selectedBook, onDismiss = { selectedBook = null })
 }
 
-// Màn hình chờ chung cho các tab chưa phát triển (Cá nhân)
-@Composable
-fun SimplePlaceholderScreen(title: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = Color.Gray
-        )
-    }
-}
-
 @Composable
 fun ReadingBar(
     bookTitle: String,
@@ -229,8 +216,7 @@ fun ReadingBar(
             ) {
                 Text(text = progress, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1C19))
                 Box(
-                    modifier = Modifier
-                        .size(28.dp)
+                    modifier = Modifier.size(28.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color(0xFF006C45)),
                     contentAlignment = Alignment.Center
